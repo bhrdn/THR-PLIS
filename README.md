@@ -21,7 +21,7 @@ main:
 	call <func C>
 ```
 
-Pada kode diatas mula-mula program, memberikan tumpukan variable dari A, B, C dan selanjutnya melakukan pemanggilan fungsi Z
+Pada kode diatas mula-mula program, memberikan tumpukan variable A, B dan selanjutnya melakukan pemanggilan fungsi C
 
 ```
 # Layout memory stack (x86)
