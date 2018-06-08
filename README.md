@@ -21,7 +21,7 @@ main:
 	call <func C>
 ```
 
-Pada kode diatas mula-mula program, memberikan tumpukan variable A, B dan selanjutnya melakukan pemanggilan fungsi C
+- Pada kode diatas mula-mula program, memberikan tumpukan variable A, B dan selanjutnya melakukan pemanggilan func C
 
 ```
 # Layout memory stack (x86)
@@ -41,9 +41,9 @@ Pada kode diatas mula-mula program, memberikan tumpukan variable A, B dan selanj
 	  |	---------------------------------
 ```
 
-Diatas merupakan layout memory stack yang dibuat dari kode sederhana tersebut, dan saat ini EBP-ESP menunjuk pada stack frame dari func C, dan dibawahnya merupakan stack frame yang memanggil func C, yaitu func main.
+- Diatas merupakan layout memory stack yang dibuat dari kode sederhana tersebut, dan saat ini EBP-ESP menunjuk pada stack frame dari func C, dan dibawahnya merupakan stack frame yang memanggil func C, yaitu func main.
 
-- Sekarang, saya akan menunjukkan bagaimana Bufferoverflow dapat terjadi.
+Sekarang, saya akan menunjukkan bagaimana Bufferoverflow dapat terjadi.
 
 ```c
 #include <stdio.h>
@@ -60,9 +60,10 @@ int main(int argc, char* argv[]) {
 
 <img src="https://user-images.githubusercontent.com/13828056/41146057-4bb0db9c-6b2c-11e8-9d26-b9cee822f9fb.gif" width="60%"></img>
 
-Dari kode diatas, variable buffer[3] hanya dapat menampung 3 bytes character saja, jika melebihi itu maka akan dianggap sebagai memory corruption. 
+- Dari kode diatas, variable buffer[3] hanya dapat menampung 3 bytes character saja, jika melebihi itu maka akan dianggap sebagai memory corruption. 
 
-- Dari jawaban yang saya kirim pertama kemarin, saya menyinggung sedikit tentang shellcode dari attacker yang dapat melakukan manipulasi program agar mendapatkan akses shell "/bin/sh" dari program yang sedang dijalankan.
+## Attack vector (Stack - Buffer Overflow)
+Jawaban yang saya kirim pertama kemarin, saya menyinggung sedikit tentang shellcode dari attacker yang dapat melakukan manipulasi program agar mendapatkan akses shell dari program yang sedang dijalankan.
 
 ```c
 #include <stdio.h>
@@ -201,3 +202,59 @@ print shellcode + "A"*(36 - len(shellcode)) + struct.pack("<I", 0xffffd468)
 <img src="https://user-images.githubusercontent.com/13828056/41151030-bea95b08-6b39-11e8-9ff4-2e69b7d051df.png" width="60%"></img>
 
 - Berhasil mendapatkan akses shell :tada: sekarang attacker mau persiapan buka puasa dahulu :laughing:
+
+## Cara pencegahan terhadap Bufferoverflow
+- Untuk cara pencegahannya mungkin ada berberapa cara mulai dari:
+	- Pointer protection
+	- Canary
+	- ASLR (Address Space Layout Randomization)
+
+- Saat ini saya akan, menjelaskan tentang cara pencegahan menggunakan ASLR, sekarang saya akan memberikan konsep layout memory jika ASLR diaktifkan.
+
+```
+	  |		[	 		]
+	  |		[	SEGMEN		]
+	  |		[	 		]
+	  |		-------------------------
+	  |		[	 		] <-- {random offset}
+	  |		-------------------------
+	  |		[	HEAP 		]
+	  |		-------------------------
+	  |		[	STACK 		]
+	  |		-------------------------
+	  |		[	ENV Variable	]
+	  |		-------------------------
+	  |		[	 		] <-- {random offset}
+	  |		-------------------------
+	  |		[	KERNEL 		]
+	  V		-------------------------
+(High Address)
+```
+- Jadi perbedaan konsep layout memory menggunakan ASLR dan non-ASLR, terdapat pada random offset untuk mengacak alamat address pada program.
+
+Sekarang, mari kita bandingkan jika ASLR diaktifkan dan nonaktif, kita dapat menggunakan kode yang sudah kita buat diatas tadi dan men-outpukan variable ``buffer`` yang sudah di deklarasikan sebelumnya.
+
+```c
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+int main(int argc, char const *argv[])
+{
+	char buffer[32];
+	printf("%p\n", &buffer);
+
+	return 0;
+}
+```
+
+### Perbedaan ASLR (Aktif dan Non-aktif)
+- Saat ASLR diaktifkan, membuat address dari buffer berubah-ubah (random)
+<img src="https://user-images.githubusercontent.com/13828056/41160690-ab177cac-6b5a-11e8-925d-33030b11e83e.gif" width="60%"></img>
+
+- Sedangkan saat dinon-aktifkan, address tidak berubah-ubah
+<img src="https://user-images.githubusercontent.com/13828056/41160501-1c5e7b8c-6b5a-11e8-996d-860eb9188d84.gif" width="60%"></img>
+
+
+## Penutup
+Sekian penjelasan dari saya, maaf jika ada kesalahan" dalam penulisan, memang saya sendiri menyadari jika ilmu saya masih cetek, jika dibandingkan dengan yang lain, akhir kata, wassalamualaikum wrwb.
